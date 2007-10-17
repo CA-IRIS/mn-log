@@ -41,10 +41,10 @@ public class NvrConnection extends DatabaseConnection {
 			"nvr");
 	}
 
-	public long getOffset(Calendar c, int camNumber){
+	public long getOffset(Calendar c, String camId){
 		try{
 			String q = "select * from " + OFFSET_TABLE + " where " +
-				CAMERA_FIELD + " = " + Integer.toString(camNumber) + " and " +
+				CAMERA_FIELD + " = '" + camId + "' and " +
 				TIME_FIELD + " >= '" + calendar2String(c) +
 				"' order by " + TIME_FIELD + " " + ASCENDING;
 			ResultSet rs = query(q);
@@ -56,19 +56,19 @@ public class NvrConnection extends DatabaseConnection {
 		}
 	}
 
-	public Calendar getBegin(int camNumber){
-		return getCalendarExtent(camNumber, ASCENDING);
+	public Calendar getBegin(String camId){
+		return getCalendarExtent(camId, ASCENDING);
 	}
 	
-	public Calendar getEnd(int camNumber){
-		return getCalendarExtent(camNumber, DESCENDING);
+	public Calendar getEnd(String camId){
+		return getCalendarExtent(camId, DESCENDING);
 	}
 
-	private Calendar getCalendarExtent(int camNumber, String order){
+	private Calendar getCalendarExtent(String camId, String order){
 		try{
 			String q = "select * from " + OFFSET_TABLE + " where " +
-				CAMERA_FIELD + " = " + Integer.toString(camNumber) +
-				" order by " + TIME_FIELD + " " + order;
+				CAMERA_FIELD + " = '" + camId + "' " +
+				"order by " + TIME_FIELD + " " + order;
 			ResultSet rs = query(q);
 			if(rs.next()) return getCalendar(rs.getString(TIME_FIELD));
 		}catch(Exception e){
@@ -77,10 +77,10 @@ public class NvrConnection extends DatabaseConnection {
 		return null;
 	}
 	
-	public String getFilename(int camNumber){
+	public String getFilename(String camId){
 		try{
 			String q = "select * from " + OFFSET_TABLE + " where " +
-				CAMERA_FIELD + " = " + Integer.toString(camNumber);
+				CAMERA_FIELD + " = '" + camId + "'";
 			ResultSet rs = query(q);
 			if(rs.next()) return rs.getString(FILENAME_FIELD);
 		}catch(Exception e){
