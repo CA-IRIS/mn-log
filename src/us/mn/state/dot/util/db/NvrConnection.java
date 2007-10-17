@@ -27,7 +27,7 @@ public class NvrConnection extends DatabaseConnection {
 
 	protected static final String OFFSET_TABLE = "file_offset";
 	protected static final String OFFSET_FIELD = "file_offset";
-	protected static final String CAMERA_FIELD = "camera_number";
+	protected static final String CAMERA_FIELD = "camera_id";
 	protected static final String FILENAME_FIELD = "file_name";
 	protected static final String TIME_FIELD = "time";
 	
