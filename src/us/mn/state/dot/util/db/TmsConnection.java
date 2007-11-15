@@ -20,7 +20,6 @@ package us.mn.state.dot.util.db;
 
 import java.sql.ResultSet;
 import java.util.Properties;
-import java.util.Vector;
 
 
 public class TmsConnection extends DatabaseConnection {
