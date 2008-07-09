@@ -27,6 +27,7 @@ public class TmsConnection extends DatabaseConnection {
 	protected static final String CAMERA_ID = "id";
 	protected static final String CAMERA_ENCODER = "encoder";
 	protected static final String CAMERA_ENCODER_CHANNEL = "encoder_channel";
+	protected static final String CAMERA_PUBLISH = "publish";
 	protected static final String CAMERA_NVR = "nvr";
 	
 	protected static final String CAMERA = "camera";
@@ -111,5 +112,18 @@ public class TmsConnection extends DatabaseConnection {
 			e.printStackTrace();
 		}
 		return -1;
+	}
+
+	/** Get the publish attribute of the camera */
+	public boolean isPublished(String camId){
+		String q = "select " + CAMERA_PUBLISH + " from " + CAMERA +
+			" where " + CAMERA_ID + " = '" + camId + "'";
+		try{
+			ResultSet rs = query(q);
+			if(rs.next()) return rs.getBoolean(CAMERA_PUBLISH);
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		return false;
 	}
 }
