@@ -82,7 +82,10 @@ public abstract class TmsLogFactory {
 	 */
 	public static Logger createLogger(String name, Level level, File dir) {
 		Logger l = Logger.getLogger(name);
-		l.setLevel( level!=null ? level: Level.SEVERE);
+		try{
+			l.setLevel( level!=null ? level: Level.FINE);
+		}catch(Exception e){
+		}
 		setDirectory(l, dir, name);
 		return l;
 	}

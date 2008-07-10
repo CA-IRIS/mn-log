@@ -93,10 +93,12 @@ public class DatabaseConnection {
 		this.user = user;
 		this.dbName = dbName;
 		this.password = pwd;
+		String port_name_separator = "/";
 		switch(dbType){
 			case(TYPE_ORACLE):
 				driver = DRIVER_ORACLE;
 				protocol = PROTOCOL_ORACLE;
+				port_name_separator = ":";
 				break;
 			case(TYPE_POSTGRES):
 				driver = DRIVER_POSTGRES;
@@ -107,7 +109,7 @@ public class DatabaseConnection {
 				protocol = PROTOCOL_POSTGRES;
 				break;
 		}
-		url = protocol + host + ":" + port + "/" + dbName;
+		url = protocol + host + ":" + port + port_name_separator + dbName;
 		try {
 			openConnection();
 			statement = connection.createStatement();
