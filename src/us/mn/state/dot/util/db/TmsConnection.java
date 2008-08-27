@@ -24,7 +24,7 @@ import java.util.Properties;
 
 public class TmsConnection extends DatabaseConnection {
 
-	protected static final String CAMERA_ID = "id";
+	protected static final String CAMERA_ID = "name";
 	protected static final String CAMERA_ENCODER = "encoder";
 	protected static final String CAMERA_ENCODER_CHANNEL = "encoder_channel";
 	protected static final String CAMERA_PUBLISH = "publish";
