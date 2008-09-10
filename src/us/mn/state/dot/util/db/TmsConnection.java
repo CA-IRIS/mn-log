@@ -30,7 +30,7 @@ public class TmsConnection extends DatabaseConnection {
 	protected static final String CAMERA_PUBLISH = "publish";
 	protected static final String CAMERA_NVR = "nvr";
 	
-	protected static final String CAMERA = "camera";
+	protected static final String CAMERA = "camera_view";
 
 	public TmsConnection(Properties p){
 		super(
