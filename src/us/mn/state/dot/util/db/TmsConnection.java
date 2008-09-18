@@ -36,13 +36,21 @@ public class TmsConnection extends DatabaseConnection {
 	protected static final int TYPE_DETECTOR = 4;
 	
 	protected static final String TABLE_CAMERA = "camera_view";
-
 	protected static final String TABLE_DMS = "dms_view";
-
 	protected static final String TABLE_METER = "ramp_meter_view";
-
 	protected static final String TABLE_DETECTOR = "detector_view";
 
+	protected static final String F_CROSS_STREET = "cross_street";
+	protected static final String F_CROSS_DIR = "cross_dir";
+	protected static final String F_CROSS_MOD = "cross_mod";
+	protected static final String F_FREEWAY = "freeway";
+	protected static final String F_FREEWAY_DIR = "free_dir";
+
+	protected static final String F_DMS_ID = "id";
+	protected static final String F_CAMERA_ID = "name";
+	protected static final String F_METER_ID = "id";
+	protected static final String F_DETECTOR_ID = "det_id";
+	
 	public TmsConnection(Properties p){
 		super(
 			DatabaseConnection.TYPE_POSTGRES,
@@ -141,48 +149,44 @@ public class TmsConnection extends DatabaseConnection {
 	/** Get the location of a device */
 	public String getLocation(int type, String deviceName){
 		String table = null;
+		String idField = null;
 		switch (type) {
-		case TYPE_DMS:
-			table = TABLE_DMS;
-			break;
-		case TYPE_CAMERA:
-			table = TABLE_CAMERA;
-			break;
-		case TYPE_DETECTOR:
-			table = TABLE_DETECTOR;
-			break;
-		default:
-			break;
+			case TYPE_DMS:
+				table = TABLE_DMS;
+				idField = F_DMS_ID;
+				break;
+			case TYPE_CAMERA:
+				table = TABLE_CAMERA;
+				idField = F_CAMERA_ID;
+				break;
+			case TYPE_DETECTOR:
+				table = TABLE_DETECTOR;
+				idField = F_DETECTOR_ID;
+				break;
+			case TYPE_METER:
+				table = TABLE_METER;
+				idField = F_METER_ID;
+				break;
+			default:
+				break;
 		}
-		String q = "select controller from " + table +
-			" where name = '" + deviceName + "'";
-		try{
-			ResultSet rs = query(q);
-			if(rs.next()){
-				return getLocation(rs.getString("controller"));
-			}
-		}catch(Exception e){
-			e.printStackTrace();
-		}
-		return null;
-	}
-
-	private String getLocation(String controller){
-		String q = "select freeway, free_dir, cross_mod, cross_street,cross_dir from " +
-			" controller_loc_view where name = '" + controller + "'";
+		String q = "select " + F_FREEWAY + ", " + F_FREEWAY_DIR + ", " +
+			F_CROSS_STREET + ", " + F_CROSS_DIR + ", " + F_CROSS_MOD +
+			" from " + table + " where " + idField + " = '" + deviceName + "'";
 		String loc = "";
 		try{
 			ResultSet rs = query(q);
 			if(rs.next()){
-				loc = loc.concat(rs.getString("freeway"));
-				loc = loc.concat(" " + rs.getString("free_dir"));
-				loc = loc.concat(" " + rs.getString("cross_mod"));
-				loc = loc.concat(" " + rs.getString("cross_street"));
-				loc = loc.concat(" " + rs.getString("cross_dir"));
+				loc = loc.concat(rs.getString(F_FREEWAY));
+				loc = loc.concat(" " + rs.getString(F_FREEWAY_DIR));
+				loc = loc.concat(" " + rs.getString(F_CROSS_MOD));
+				loc = loc.concat(" " + rs.getString(F_CROSS_STREET));
+				loc = loc.concat(" " + rs.getString(F_CROSS_DIR));
 			}
 		}catch(Exception e){
 			e.printStackTrace();
 		}
 		return loc;
 	}
+
 }
