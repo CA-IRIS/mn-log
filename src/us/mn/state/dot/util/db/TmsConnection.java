@@ -30,7 +30,18 @@ public class TmsConnection extends DatabaseConnection {
 	protected static final String CAMERA_PUBLISH = "publish";
 	protected static final String CAMERA_NVR = "nvr";
 	
-	protected static final String CAMERA = "camera_view";
+	protected static final int TYPE_CAMERA = 1;
+	protected static final int TYPE_DMS = 2;
+	protected static final int TYPE_METER = 3;
+	protected static final int TYPE_DETECTOR = 4;
+	
+	protected static final String TABLE_CAMERA = "camera_view";
+
+	protected static final String TABLE_DMS = "dms_view";
+
+	protected static final String TABLE_METER = "ramp_meter_view";
+
+	protected static final String TABLE_DETECTOR = "detector_view";
 
 	public TmsConnection(Properties p){
 		super(
@@ -49,7 +60,7 @@ public class TmsConnection extends DatabaseConnection {
 	
 	public String getNvrHost(String camId){
 		try{
-			String q = "select " + CAMERA_NVR + " from " + CAMERA +
+			String q = "select " + CAMERA_NVR + " from " + TABLE_CAMERA +
 				" where " + CAMERA_ID + " = '" + camId + "'";
 			ResultSet rs = query(q);
 			if(rs.next()) return rs.getString(CAMERA_NVR);
@@ -61,7 +72,7 @@ public class TmsConnection extends DatabaseConnection {
 
 	public String getEncoderHost(String camId){
 		try{
-			String q = "select " + CAMERA_ENCODER + " from " + CAMERA +
+			String q = "select " + CAMERA_ENCODER + " from " + TABLE_CAMERA +
 				" where " + CAMERA_ID + " = '" + camId + "'";
 			ResultSet rs = query(q);
 			if(rs.next()) return rs.getString(CAMERA_ENCODER);
@@ -75,7 +86,7 @@ public class TmsConnection extends DatabaseConnection {
 	 * Get an array of encoder hostnames for all cameras.
 	 */
 	public String[] getEncoderHosts(){
-		String q = "select distinct " + CAMERA_ENCODER + " from " + CAMERA +
+		String q = "select distinct " + CAMERA_ENCODER + " from " + TABLE_CAMERA +
 			" where " + CAMERA_ENCODER + " is not null";
 		return getColumn(query(q), CAMERA_ENCODER);
 	}
@@ -86,7 +97,7 @@ public class TmsConnection extends DatabaseConnection {
 	 * @return An array camera ids.
 	 */
 	public String[] getCameraIdsByEncoder(String ip){
-		String q = "select " + CAMERA_ID + " from " + CAMERA +
+		String q = "select " + CAMERA_ID + " from " + TABLE_CAMERA +
 			" where " + CAMERA_ENCODER + " like '" + ip + ":%'";
 		return getColumn(query(q), CAMERA_ID);
 	}
@@ -97,13 +108,13 @@ public class TmsConnection extends DatabaseConnection {
 	 * @return An array camera ids.
 	 */
 	public String[] getCameraIdsByNvr(String ip){
-		String q = "select " + CAMERA_ID + " from " + CAMERA +
+		String q = "select " + CAMERA_ID + " from " + TABLE_CAMERA +
 			" where " + CAMERA_NVR + " like '" + ip + ":%'";
 		return getColumn(query(q), CAMERA_ID);
 	}
 
 	public int getEncoderChannel(String camId){
-		String q = "select " + CAMERA_ENCODER_CHANNEL + " from " + CAMERA +
+		String q = "select " + CAMERA_ENCODER_CHANNEL + " from " + TABLE_CAMERA +
 			" where " + CAMERA_ID + " = '" + camId + "'";
 		try{
 			ResultSet rs = query(q);
@@ -116,7 +127,7 @@ public class TmsConnection extends DatabaseConnection {
 
 	/** Get the publish attribute of the camera */
 	public boolean isPublished(String camId){
-		String q = "select " + CAMERA_PUBLISH + " from " + CAMERA +
+		String q = "select " + CAMERA_PUBLISH + " from " + TABLE_CAMERA +
 			" where " + CAMERA_ID + " = '" + camId + "'";
 		try{
 			ResultSet rs = query(q);
@@ -125,5 +136,53 @@ public class TmsConnection extends DatabaseConnection {
 			e.printStackTrace();
 		}
 		return false;
+	}
+
+	/** Get the location of a device */
+	public String getLocation(int type, String deviceName){
+		String table = null;
+		switch (type) {
+		case TYPE_DMS:
+			table = TABLE_DMS;
+			break;
+		case TYPE_CAMERA:
+			table = TABLE_CAMERA;
+			break;
+		case TYPE_DETECTOR:
+			table = TABLE_DETECTOR;
+			break;
+		default:
+			break;
+		}
+		String q = "select controller from " + table +
+			" where name = '" + deviceName + "'";
+		try{
+			ResultSet rs = query(q);
+			if(rs.next()){
+				return getLocation(rs.getString("controller"));
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	private String getLocation(String controller){
+		String q = "select freeway, free_dir, cross_mod, cross_street,cross_dir from " +
+			" controller_loc_view where name = '" + controller + "'";
+		String loc = "";
+		try{
+			ResultSet rs = query(q);
+			if(rs.next()){
+				loc = loc.concat(rs.getString("freeway"));
+				loc = loc.concat(" " + rs.getString("free_dir"));
+				loc = loc.concat(" " + rs.getString("cross_mod"));
+				loc = loc.concat(" " + rs.getString("cross_street"));
+				loc = loc.concat(" " + rs.getString("cross_dir"));
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		return loc;
 	}
 }
