@@ -19,6 +19,7 @@
 package us.mn.state.dot.util.db;
 
 import java.sql.ResultSet;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Properties;
 
@@ -32,7 +33,7 @@ public class TmsConnection extends DatabaseConnection {
 	protected static final String CAMERA_NVR = "nvr";
 	
 	public static final int TYPE_CONTROLLER = 1;
-	public static final int TYPE_COMMUNICATION_LINE = 2;
+	public static final int TYPE_COMM_LINK = 2;
 	public static final int TYPE_CAMERA = 3;
 	public static final int TYPE_DETECTOR = 4;
 	public static final int TYPE_LCS = 5;
@@ -202,165 +203,141 @@ public class TmsConnection extends DatabaseConnection {
 		return loc;
 	}
 
-	/** Get a hash of vault_oid's indexed by the
-	 *  device id
+	/** Get a list of names for a given device type
 	 */
-	public Hashtable getVaultOids(int type){
-		Hashtable hash = new Hashtable();
+	public ArrayList<String> getNames(int type){
 		switch(type){
 			case(TYPE_CONTROLLER):
-				return getControllerIDs();
-			case(TYPE_COMMUNICATION_LINE):
-				return getCommLineOIDs();
+				return getControllerNames();
+			case(TYPE_COMM_LINK):
+				return getCommLinkNames();
 			case(TYPE_CAMERA):
-				return getCameraOIDs();
+				return getCameraNames();
 			case(TYPE_DETECTOR):
-				return getDetectorOIDs();
+				return getDetectorNames();
 			case(TYPE_DMS):
-				return getDMSOIDs();
+				return getDMSNames();
 			case(TYPE_LCS):
-				return getLCSOIDs();
+				return getLCSNames();
 			case(TYPE_METER):
-				return getMeterOIDs();
+				return getMeterNames();
 		}
-		return hash;
+		return new ArrayList<String>();
 	}
 	
-	private Hashtable getControllerIDs(){
-		Hashtable hash = new Hashtable();
-		String sql = "select name, comm_link, drop_id " +
+	private ArrayList<String> getControllerNames(){
+		ArrayList<String> list = new ArrayList<String>();
+		String sql = "select comm_link, drop_id " +
 				"from controller_loc_view ";
 		ResultSet set = query(sql);
-		String id = null;
-		String oid = null; 
 		try{
 			set.beforeFirst();
 			while(set.next()){
-				id = set.getString("comm_link") + "D" + set.getString("drop_id");
-				oid = set.getString("name");
-				hash.put(oid, id);
+				list.add(set.getString("comm_link") + "D" + set.getString("drop_id"));
 			}
 		}catch(Exception e){
 			e.printStackTrace();
 		}
-		return hash;
+		return list;
 	}
 	
-	/** Get a <code>Hashtable</code> that contains comm line
-	 * ID's as the keys and vault OID's as the values. */
-	private Hashtable getCommLineOIDs(){
-		Hashtable<String, Integer> hash = new Hashtable<String, Integer>();
-		String sql = "select vault_oid, index from communication_line";
+	/** Get a list of comm_link names. */
+	private ArrayList<String> getCommLinkNames(){
+		ArrayList<String> list = new ArrayList<String>();
+		String sql = "select name from comm_link";
 		ResultSet set = query(sql);
 		try {
 			set.beforeFirst();
 			while ( set.next() ) {
-				String id = set.getString("index");
-				hash.put(id, new Integer(set.getInt("vault_oid")));
+				 list.add(set.getString("name"));
 			}
 		} catch ( Exception ex ) {
 			ex.printStackTrace();
-			return null;
 		}
-		return hash;
+		return list;
 	}
 
-	/** Get a <code>Hashtable</code> that contains meter
-	 * ID's as the keys and vault OID's as the values. */
-	private Hashtable getMeterOIDs(){
-		Hashtable<String, Integer> hash = new Hashtable<String, Integer>();
-		String sql = "select vault_oid, id from ramp_meter";
+	/** Get a list of meter names. */
+	private ArrayList<String> getMeterNames(){
+		ArrayList<String> list = new ArrayList<String>();
+		String sql = "select id from ramp_meter_view";
 		ResultSet set = query(sql);
 		try {
 			set.beforeFirst();
 			while ( set.next() ) {
-				String id = set.getString("id");
-				hash.put(id, new Integer(set.getInt("vault_oid")));
+				list.add(set.getString("id"));
 			}
 		} catch ( Exception ex ) {
 			ex.printStackTrace();
-			return null;
 		}
-		return hash;
+		return list;
 	}
 
-	/** Get a <code>Hashtable</code> that contains detector
-	 * ID's as the keys and vault OID's as the values. */
-	private Hashtable<String, Integer> getDetectorOIDs(){
-		Hashtable<String, Integer> hash = new Hashtable<String, Integer>();
-		String sql = "select vault_oid, index from detector";
+	/** Get a list of detector names. */
+	private ArrayList<String> getDetectorNames(){
+		ArrayList<String> list = new ArrayList<String>();
+		String sql = "select det_id from detector_view";
 		ResultSet set = query(sql);
 		try {
 			set.beforeFirst();
 			while ( set.next() ) {
-				String id = set.getString("index");
-				hash.put(id, new Integer(set.getInt("vault_oid")));
+				list.add(set.getString("det_id"));
 			}
 		} catch ( Exception ex ) {
 			ex.printStackTrace();
-			return null;
 		}
-		return hash;
+		return list;
 	}
 
-	/** Get a <code>Hashtable</code> that contains DMS
-	 * ID's as the keys and vault OID's as the values. */
-	private Hashtable getDMSOIDs(){
-		Hashtable<String, Integer> hash = new Hashtable<String, Integer>();
-		String sql = "select vault_oid, id from dms";
+	/** Get a list of DMS names. */
+	private ArrayList<String> getDMSNames(){
+		ArrayList<String> list = new ArrayList<String>();
+		String sql = "select id from dms_view";
 		ResultSet set = query(sql);
 		try {
 			set.beforeFirst();
 			while ( set.next() ) {
-				String id = set.getString("id");
-				hash.put(id, new Integer(set.getInt("vault_oid")));
+				list.add(set.getString("id"));
 			}
 		} catch ( Exception ex ) {
 			ex.printStackTrace();
-			return null;
 		}
-		return hash;
+		return list;
 	}
 
-	/** Get a <code>Hashtable</code> that contains camera
-	 * ID's as the keys and vault OID's as the values. */
-	private Hashtable getCameraOIDs(){
-		Hashtable<String, Integer> hash = new Hashtable<String, Integer>();
-		String sql = "select vault_oid, id from camera";
+	/** Get a list of camera names. */
+	private ArrayList<String> getCameraNames(){
+		ArrayList<String> list = new ArrayList<String>();
+		String sql = "select name from camera_view";
 		ResultSet set = query(sql);
 		try {
 			set.beforeFirst();
 			while ( set.next() ) {
-				String id = set.getString("id");
-				hash.put(id, new Integer(set.getInt("vault_oid")));
+				list.add(set.getString("name"));
 			}
 		} catch ( Exception ex ) {
 			ex.printStackTrace();
-			return null;
 		}
-		return hash;
+		return list;
 	}
 
-	/** Get a <code>Hashtable</code> that contains LCS
-	 * ID's as the keys and vault OID's as the values. */
-	private Hashtable getLCSOIDs(){
-		Hashtable<String, Integer> hash = new Hashtable<String, Integer>();
-		String sql = "select vault_oid, id from lcs";
+	/** Get a list of LCS names. */
+	private ArrayList<String> getLCSNames(){
+		ArrayList<String> list = new ArrayList<String>();
+		String sql = "select id from lcs";
 		ResultSet set = query(sql);
 		try {
 			set.beforeFirst();
 			while ( set.next() ) {
-				String id = set.getString("id");
-				hash.put(id, new Integer(set.getInt("vault_oid")));
+				list.add(set.getString("id"));
 			}
 		} catch ( Exception ex ) {
 			ex.printStackTrace();
-			return null;
 		}
-		return hash;
+		return list;
 	}
 
-	/* Get the comm_link name for the given URL */
+	/** Get the comm_link name for the given URL */
 	public String getCommLink(String url){
 		try{
 			String q = "select " + F_COMMLINK_ID + " from " + TABLE_COMMLINK +
