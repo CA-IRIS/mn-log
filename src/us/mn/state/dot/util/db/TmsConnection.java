@@ -349,4 +349,18 @@ public class TmsConnection extends DatabaseConnection {
 		}
 		return null; 
 	}
+
+	/** Get the url for the given comm_link name */
+	public String getURL(String name){
+		try{
+			String q = "select " + F_COMMLINK_URL + " from " + TABLE_COMMLINK +
+				" where " + F_COMMLINK_ID + " = '" + name + "'";
+			ResultSet rs = query(q);
+			if(rs.next()) return rs.getString(F_COMMLINK_URL);
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		return null; 
+	}
+
 }
