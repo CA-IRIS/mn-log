@@ -53,9 +53,9 @@ public class TmsConnection extends DatabaseConnection {
 	protected static final String F_FREEWAY = "freeway";
 	protected static final String F_FREEWAY_DIR = "free_dir";
 
-	protected static final String F_DMS_ID = "id";
+	protected static final String F_DMS_ID = "name";
 	protected static final String F_CAMERA_ID = "name";
-	protected static final String F_METER_ID = "id";
+	protected static final String F_METER_ID = "name";
 	protected static final String F_DETECTOR_ID = "det_id";
 	protected static final String F_COMMLINK_ID = "name";
 	protected static final String F_COMMLINK_URL = "url";
@@ -184,6 +184,7 @@ public class TmsConnection extends DatabaseConnection {
 			default:
 				break;
 		}
+		if(table == null || idField == null) return "";
 		String q = "select " + F_FREEWAY + ", " + F_FREEWAY_DIR + ", " +
 			F_CROSS_STREET + ", " + F_CROSS_DIR + ", " + F_CROSS_MOD +
 			" from " + table + " where " + idField + " = '" + deviceName + "'";
