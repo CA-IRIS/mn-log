@@ -53,16 +53,21 @@ public abstract class TmsLogFactory {
 		if(dir==null || !dir.isDirectory() || !dir.canWrite()){
 			h = new ConsoleHandler();
 		}else {
+			String fn = "";
 			try{
 				String d = dir.getAbsolutePath();
 				String n = d + File.separator + name;
-				h = new FileHandler(n + "_%g.log", 1024 * 1024 * 5, 4);
+				fn = n + "_%g.log";
+				h = new FileHandler(fn, 1024 * 1024 * 5, 4);
 			}catch(IOException ioe){
-				printError(ioe.getMessage());
+				printError("Filename=" + fn + ", " + 
+					ioe.getMessage());
 			}
 		}
-		h.setFormatter(new TmsLogFormatter());
-		if(h!=null) l.addHandler(h);
+		if(h != null) {
+			h.setFormatter(new TmsLogFormatter());
+			l.addHandler(h);
+		}
 	}
 
 	/**
