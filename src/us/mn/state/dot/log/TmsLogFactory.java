@@ -46,12 +46,7 @@ public abstract class TmsLogFactory {
 	static public Logger createLogger(String name, Level level, File dir) {
 		assert name != null;
 		Logger l = Logger.getLogger(name);
-		try {
-			l.setLevel(level != null ? level: Level.FINE);
-		}
-		catch(Exception e) {
-			// FIXME: this cant possibly be important, right?
-		}
+		l.setLevel(level != null ? level: Level.FINE);
 		setDirectory(l, dir, name);
 		return l;
 	}
