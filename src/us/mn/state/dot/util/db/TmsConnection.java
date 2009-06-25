@@ -19,6 +19,8 @@
 package us.mn.state.dot.util.db;
 
 import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.Properties;
 
 
@@ -30,15 +32,20 @@ public class TmsConnection extends DatabaseConnection {
 	protected static final String CAMERA_PUBLISH = "publish";
 	protected static final String CAMERA_NVR = "nvr";
 	
-	protected static final int TYPE_CAMERA = 1;
-	protected static final int TYPE_DMS = 2;
-	protected static final int TYPE_METER = 3;
-	protected static final int TYPE_DETECTOR = 4;
+	public static final int TYPE_CONTROLLER = 1;
+	public static final int TYPE_COMM_LINK = 2;
+	public static final int TYPE_CAMERA = 3;
+	public static final int TYPE_DETECTOR = 4;
+	public static final int TYPE_LCS = 5;
+	public static final int TYPE_DMS = 6;
+	public static final int TYPE_METER = 7;
 	
 	protected static final String TABLE_CAMERA = "camera_view";
 	protected static final String TABLE_DMS = "dms_view";
 	protected static final String TABLE_METER = "ramp_meter_view";
 	protected static final String TABLE_DETECTOR = "detector_view";
+	protected static final String TABLE_COMMLINK = "comm_link";
+	protected static final String TABLE_CONTROLLER = "controller_loc_view";
 
 	protected static final String F_CROSS_STREET = "cross_street";
 	protected static final String F_CROSS_DIR = "cross_dir";
@@ -50,6 +57,9 @@ public class TmsConnection extends DatabaseConnection {
 	protected static final String F_CAMERA_ID = "name";
 	protected static final String F_METER_ID = "id";
 	protected static final String F_DETECTOR_ID = "det_id";
+	protected static final String F_COMMLINK_ID = "name";
+	protected static final String F_COMMLINK_URL = "url";
+	protected static final String F_CONTROLLER_ID = "name";
 	
 	public TmsConnection(Properties p){
 		super(
@@ -167,6 +177,10 @@ public class TmsConnection extends DatabaseConnection {
 				table = TABLE_METER;
 				idField = F_METER_ID;
 				break;
+			case TYPE_CONTROLLER:
+				table = TABLE_CONTROLLER;
+				idField = F_CONTROLLER_ID;
+				break;
 			default:
 				break;
 		}
@@ -187,6 +201,166 @@ public class TmsConnection extends DatabaseConnection {
 			e.printStackTrace();
 		}
 		return loc;
+	}
+
+	/** Get a list of names for a given device type
+	 */
+	public ArrayList<String> getNames(int type){
+		switch(type){
+			case(TYPE_CONTROLLER):
+				return getControllerNames();
+			case(TYPE_COMM_LINK):
+				return getCommLinkNames();
+			case(TYPE_CAMERA):
+				return getCameraNames();
+			case(TYPE_DETECTOR):
+				return getDetectorNames();
+			case(TYPE_DMS):
+				return getDMSNames();
+			case(TYPE_LCS):
+				return getLCSNames();
+			case(TYPE_METER):
+				return getMeterNames();
+		}
+		return new ArrayList<String>();
+	}
+	
+	private ArrayList<String> getControllerNames(){
+		ArrayList<String> list = new ArrayList<String>();
+		String sql = "select comm_link, drop_id " +
+				"from controller_loc_view ";
+		ResultSet set = query(sql);
+		try{
+			set.beforeFirst();
+			while(set.next()){
+				list.add(set.getString("comm_link") + "D" + set.getString("drop_id"));
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		return list;
+	}
+	
+	/** Get a list of comm_link names. */
+	private ArrayList<String> getCommLinkNames(){
+		ArrayList<String> list = new ArrayList<String>();
+		String sql = "select name from comm_link";
+		ResultSet set = query(sql);
+		try {
+			set.beforeFirst();
+			while ( set.next() ) {
+				 list.add(set.getString("name"));
+			}
+		} catch ( Exception ex ) {
+			ex.printStackTrace();
+		}
+		return list;
+	}
+
+	/** Get a list of meter names. */
+	private ArrayList<String> getMeterNames(){
+		ArrayList<String> list = new ArrayList<String>();
+		String sql = "select id from ramp_meter_view";
+		ResultSet set = query(sql);
+		try {
+			set.beforeFirst();
+			while ( set.next() ) {
+				list.add(set.getString("id"));
+			}
+		} catch ( Exception ex ) {
+			ex.printStackTrace();
+		}
+		return list;
+	}
+
+	/** Get a list of detector names. */
+	private ArrayList<String> getDetectorNames(){
+		ArrayList<String> list = new ArrayList<String>();
+		String sql = "select det_id from detector_view";
+		ResultSet set = query(sql);
+		try {
+			set.beforeFirst();
+			while ( set.next() ) {
+				list.add(set.getString("det_id"));
+			}
+		} catch ( Exception ex ) {
+			ex.printStackTrace();
+		}
+		return list;
+	}
+
+	/** Get a list of DMS names. */
+	private ArrayList<String> getDMSNames(){
+		ArrayList<String> list = new ArrayList<String>();
+		String sql = "select id from dms_view";
+		ResultSet set = query(sql);
+		try {
+			set.beforeFirst();
+			while ( set.next() ) {
+				list.add(set.getString("id"));
+			}
+		} catch ( Exception ex ) {
+			ex.printStackTrace();
+		}
+		return list;
+	}
+
+	/** Get a list of camera names. */
+	private ArrayList<String> getCameraNames(){
+		ArrayList<String> list = new ArrayList<String>();
+		String sql = "select name from camera_view";
+		ResultSet set = query(sql);
+		try {
+			set.beforeFirst();
+			while ( set.next() ) {
+				list.add(set.getString("name"));
+			}
+		} catch ( Exception ex ) {
+			ex.printStackTrace();
+		}
+		return list;
+	}
+
+	/** Get a list of LCS names. */
+	private ArrayList<String> getLCSNames(){
+		ArrayList<String> list = new ArrayList<String>();
+		String sql = "select id from lcs";
+		ResultSet set = query(sql);
+		try {
+			set.beforeFirst();
+			while ( set.next() ) {
+				list.add(set.getString("id"));
+			}
+		} catch ( Exception ex ) {
+			ex.printStackTrace();
+		}
+		return list;
+	}
+
+	/** Get the comm_link name for the given URL */
+	public String getCommLink(String url){
+		try{
+			String q = "select " + F_COMMLINK_ID + " from " + TABLE_COMMLINK +
+				" where " + F_COMMLINK_URL + " = '" + url + "'";
+			ResultSet rs = query(q);
+			if(rs.next()) return rs.getString(F_COMMLINK_ID);
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		return null; 
+	}
+
+	/** Get the url for the given comm_link name */
+	public String getURL(String name){
+		try{
+			String q = "select " + F_COMMLINK_URL + " from " + TABLE_COMMLINK +
+				" where " + F_COMMLINK_ID + " = '" + name + "'";
+			ResultSet rs = query(q);
+			if(rs.next()) return rs.getString(F_COMMLINK_URL);
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		return null; 
 	}
 
 }
