@@ -72,6 +72,8 @@ public abstract class TmsLogFactory {
 
 	/** Create a file handler */
 	static protected Handler createHandler(File dir, String name) {
+		if(dir == null)
+			return new ConsoleHandler();
 		String fn = new File(dir, name + "_%g.log").getAbsolutePath();
 		try {
 			return new FileHandler(fn, 1024 * 1024 * 5, 4);
