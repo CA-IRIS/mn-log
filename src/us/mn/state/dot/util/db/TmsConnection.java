@@ -44,7 +44,7 @@ public class TmsConnection extends DatabaseConnection {
 	protected static final String TABLE_DMS = "dms_view";
 	protected static final String TABLE_METER = "ramp_meter_view";
 	protected static final String TABLE_DETECTOR = "detector_view";
-	protected static final String TABLE_COMMLINK = "comm_link";
+	protected static final String TABLE_COMMLINK = "comm_link_view";
 	protected static final String TABLE_CONTROLLER = "controller_loc_view";
 
 	protected static final String F_CROSS_STREET = "cross_street";
