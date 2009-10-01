@@ -1,6 +1,6 @@
 /*
  * Project: TMS Log
- * Copyright (C) 2007  Minnesota Department of Transportation
+ * Copyright (C) 2007-2009  Minnesota Department of Transportation
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -11,10 +11,6 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 package us.mn.state.dot.log;
 
@@ -30,8 +26,40 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Factory for creating loggers.
+ */
 public abstract class TmsLogFactory {
 
+	/** Create a standard logger */
+	static public Logger createLogger(String name) {
+		return createLogger(name, null, null);
+	}
+
+	/**
+	 * Create a standard logger.
+	 * @param name The base name for the log files
+	 * @param level The level of logging
+	 * @param dir The location for the log files
+	 * @return
+	 */
+	static public Logger createLogger(String name, Level level, File dir) {
+		assert name != null;
+		Logger l = Logger.getLogger(name);
+		l.setLevel(level != null ? level: Level.FINE);
+		setDirectory(l, dir, name);
+		return l;
+	}
+
+	/** Set the directory for a logger */
+	static protected void setDirectory(Logger l, File dir, String name) {
+		removeParentHandlers(l);
+		Handler h = createHandler(dir, name);
+		h.setFormatter(new TmsLogFormatter());
+		l.addHandler(h);
+	}
+
+	/** Remove existing handlers from a logger */
 	static protected void removeParentHandlers(Logger l) {
 		Logger parent = l.getParent();
 		while(parent != null) {
@@ -42,57 +70,29 @@ public abstract class TmsLogFactory {
 		}
 	}
 
+	/** Create a file handler */
+	static protected Handler createHandler(File dir, String name) {
+		if(dir == null)
+			return new ConsoleHandler();
+		String fn = new File(dir, name + "_%g.log").getAbsolutePath();
+		try {
+			return new FileHandler(fn, 1024 * 1024 * 5, 4);
+		}
+		catch(IOException e) {
+			printError("Filename=" + fn + ", " + e.getMessage());
+			return new ConsoleHandler();
+		}
+	}
+
+	/** Print an error message */
 	static protected void printError(String e) {
 		System.out.println(e + "... using standard out.");
 	}
 
-	static protected void setDirectory(Logger l, File dir, String name)
-	{
-		removeParentHandlers(l);
-		Handler h = null;
-		if(dir==null || !dir.isDirectory() || !dir.canWrite()){
-			h = new ConsoleHandler();
-		}else {
-			try{
-				String d = dir.getAbsolutePath();
-				String n = d + File.separator + name;
-				h = new FileHandler(n + "_%g.log", 1024 * 1024 * 5, 4);
-			}catch(IOException ioe){
-				printError(ioe.getMessage());
-			}
-		}
-		h.setFormatter(new TmsLogFormatter());
-		if(h!=null) l.addHandler(h);
-	}
-
-	/**
-	 * Create a standard logger for Mn/Dot applications
-	 * @return
-	 */
-	public static Logger createLogger(String name) {
-		return createLogger(name, null, null);
-	}
-
-	/**
-	 * Create a standard logger for Mn/Dot applications
-	 * @param name The base name for the log files
-	 * @param level The level of logging
-	 * @param dir The location for the log files
-	 * @return
-	 */
-	public static Logger createLogger(String name, Level level, File dir) {
-		Logger l = Logger.getLogger(name);
-		try{
-			l.setLevel( level!=null ? level: Level.FINE);
-		}catch(Exception e){
-		}
-		setDirectory(l, dir, name);
-		return l;
-	}
-	
 	/** Redirect the standard output and error streams to log files. */
-	public static void redirectStdStreams(String appName, File dir)
-			throws FileNotFoundException {
+	static public void redirectStdStreams(String appName, File dir)
+		throws FileNotFoundException
+	{
 		String fileName = dir.getAbsolutePath() +
 			File.separator + appName;
 		FileOutputStream fos =
@@ -102,10 +102,5 @@ public abstract class TmsLogFactory {
 		fos = new FileOutputStream(fileName + ".err", true);
 		bos = new BufferedOutputStream(fos);
 		System.setErr(new PrintStream(bos, true));
-	}
-
-	public static void main(String[] args){
-		Logger l = TmsLogFactory.createLogger("mylogger");
-		l.warning("this is a warning.");
 	}
 }
