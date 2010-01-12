@@ -112,7 +112,8 @@ public class DatabaseConnection {
 		url = protocol + host + ":" + port + port_name_separator + dbName;
 		try {
 			openConnection();
-			statement = connection.createStatement();
+			statement = connection.createStatement(
+					ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 		} catch ( Exception e ) {
 			e.printStackTrace();
 		}
