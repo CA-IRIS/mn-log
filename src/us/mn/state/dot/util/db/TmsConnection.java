@@ -39,6 +39,7 @@ public class TmsConnection extends DatabaseConnection {
 	public static final int TYPE_LCS = 5;
 	public static final int TYPE_DMS = 6;
 	public static final int TYPE_METER = 7;
+	public static final int TYPE_ROADWAY = 8;
 	
 	protected static final String TABLE_CAMERA = "camera_view";
 	protected static final String TABLE_DMS = "dms_view";
@@ -222,6 +223,8 @@ public class TmsConnection extends DatabaseConnection {
 				return getLCSNames();
 			case(TYPE_METER):
 				return getMeterNames();
+			case(TYPE_ROADWAY):
+				return getRoadwayNames();
 		}
 		return new ArrayList<String>();
 	}
@@ -331,6 +334,22 @@ public class TmsConnection extends DatabaseConnection {
 			set.beforeFirst();
 			while ( set.next() ) {
 				list.add(set.getString("id"));
+			}
+		} catch ( Exception ex ) {
+			ex.printStackTrace();
+		}
+		return list;
+	}
+
+	/** Get a list of Roadway names. */
+	private ArrayList<String> getRoadwayNames(){
+		ArrayList<String> list = new ArrayList<String>();
+		String sql = "select name from road_view order by name";
+		ResultSet set = query(sql);
+		try {
+			set.beforeFirst();
+			while ( set.next() ) {
+				list.add(set.getString("name"));
 			}
 		} catch ( Exception ex ) {
 			ex.printStackTrace();
