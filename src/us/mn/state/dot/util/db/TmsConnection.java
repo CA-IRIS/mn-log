@@ -312,7 +312,7 @@ public class TmsConnection extends DatabaseConnection {
 	/** Get a list of camera names. */
 	private ArrayList<String> getCameraNames(){
 		ArrayList<String> list = new ArrayList<String>();
-		String sql = "select name from camera_view";
+		String sql = "select name from camera_view order by name";
 		ResultSet set = query(sql);
 		try {
 			set.beforeFirst();
