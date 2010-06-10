@@ -79,13 +79,8 @@ public class HTTPProxySelector extends ProxySelector {
 		if(uri != null && shouldUseProxy(uri)) {
 			int port = uri.getPort();
 			for(Proxy proxy: proxies) {
-				SocketAddress sa = proxy.address();
-				if(sa instanceof InetSocketAddress) {
-					InetSocketAddress isa =
-						(InetSocketAddress)sa;
-					if(isa.getPort() == port)
-						pl.add(proxy);
-				}
+				if(port < 0 || matchProxy(proxy, port))
+					pl.add(proxy);
 			}
 		}
 		if(pl.isEmpty())
@@ -108,6 +103,16 @@ public class HTTPProxySelector extends ProxySelector {
 		catch(UnknownHostException uhe) {
 			return true;
 		}
+	}
+
+	/** Check if a proxy server matches a port */
+	protected boolean matchProxy(Proxy proxy, int port) {
+		SocketAddress sa = proxy.address();
+		if(sa instanceof InetSocketAddress) {
+			InetSocketAddress isa = (InetSocketAddress)sa;
+			return isa.getPort() == port;
+		} else
+			return false;
 	}
 
 	/** Check if the selector has defined proxy servers */
