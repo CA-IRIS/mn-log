@@ -22,7 +22,7 @@ import java.net.ProxySelector;
 import java.net.SocketAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 import java.util.StringTokenizer;
@@ -50,15 +50,18 @@ public class HTTPProxySelector extends ProxySelector {
 		return false;
 	}
 
+	/** List of proxies for direct */
+	static protected final List<Proxy> DIRECT = new LinkedList<Proxy>();
+	static {
+		DIRECT.add(Proxy.NO_PROXY);
+	}
+
 	protected String[] noProxyHosts;
 
-	protected final List<Proxy> DIRECT_LIST = new ArrayList<Proxy>();
-
-	protected final List<Proxy> PROXY_LIST = new ArrayList<Proxy>();
+	protected final List<Proxy> PROXY_LIST = new LinkedList<Proxy>();
 
 	/** Create a new HTTP proxy selector */
 	public HTTPProxySelector(Properties props) {
-		DIRECT_LIST.add(Proxy.NO_PROXY);
 		setProxyList(props);
 		setNoProxyHosts(props);
 	}
@@ -108,13 +111,13 @@ public class HTTPProxySelector extends ProxySelector {
 
 	public List<Proxy> select(URI uri) {
 		if(uri == null)
-			return DIRECT_LIST;
+			return DIRECT;
 		if(PROXY_LIST.size() == 0)
-			return DIRECT_LIST;
+			return DIRECT;
 		if(isInside(uri))
-			return DIRECT_LIST;
+			return DIRECT;
 		if(!isProxyPort(uri))
-			return DIRECT_LIST;
+			return DIRECT;
 		return PROXY_LIST;
 	}
 }
