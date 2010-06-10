@@ -1,6 +1,6 @@
 /*
  * IRIS -- Intelligent Roadway Information System
- * Copyright (C) 2007  Minnesota Department of Transportation
+ * Copyright (C) 2007,2010  Minnesota Department of Transportation
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,24 +31,25 @@ import java.util.StringTokenizer;
  * Proxy selector for HTTP clients
  *
  * @author Tim Johnson
+ * @author Douglas Lau
  */
 public class HTTPProxySelector extends ProxySelector {
 
 	protected String[] noProxyHosts;
 
 	protected final int[] proxyPorts = {80, 8080};
-	
+
 	protected final List<Proxy> DIRECT_LIST = new ArrayList<Proxy>();
 
 	protected final List<Proxy> PROXY_LIST = new ArrayList<Proxy>();
-	
-	public HTTPProxySelector(Properties props){
+
+	public HTTPProxySelector(Properties props) {
 		DIRECT_LIST.add(Proxy.NO_PROXY);
 		setProxyList(props);
 		setNoProxyHosts(props);
 	}
-	
-	private void setNoProxyHosts(Properties props){
+
+	private void setNoProxyHosts(Properties props) {
 		String hosts = props.getProperty("no.proxy.hosts");
 		if(hosts != null) {
 			StringTokenizer t =
@@ -73,37 +74,43 @@ public class HTTPProxySelector extends ProxySelector {
 	}
 
 	public void connectFailed(URI uri, SocketAddress sa, IOException ioe) {
-		//FIXME: implement this method
+		// FIXME: implement this method
 	}
-	
-	protected boolean isInside(URI uri){
+
+	protected boolean isInside(URI uri) {
 		String host = uri.getHost();
 		try {
 			InetAddress addr = InetAddress.getByName(host);
 			String hostIp = addr.getHostAddress();
 			for(String h: noProxyHosts) {
-				if(hostIp.indexOf(h) > -1){
+				if(hostIp.indexOf(h) > -1)
 					return true;
-				}
 			}
-		} catch(UnknownHostException uhe) {
+		}
+		catch(UnknownHostException uhe) {
 		}
 		return false;
 	}
-	
+
 	public List<Proxy> select(URI uri) {
-		if(uri == null) return DIRECT_LIST;
-		if(PROXY_LIST.size() == 0) return DIRECT_LIST;
-		if(isInside(uri)) return DIRECT_LIST;
-		if(!isProxyPort(uri)) return DIRECT_LIST;
+		if(uri == null)
+			return DIRECT_LIST;
+		if(PROXY_LIST.size() == 0)
+			return DIRECT_LIST;
+		if(isInside(uri))
+			return DIRECT_LIST;
+		if(!isProxyPort(uri))
+			return DIRECT_LIST;
 		return PROXY_LIST;
 	}
 
-	protected boolean isProxyPort(URI uri){
+	protected boolean isProxyPort(URI uri) {
 		int p = uri.getPort();
-		if(p==-1) return true;
-		for(int i : proxyPorts){
-			if(p==i) return true;
+		if(p == -1)
+			return true;
+		for(int i: proxyPorts) {
+			if(p == i)
+				return true;
 		}
 		return false;
 	}
