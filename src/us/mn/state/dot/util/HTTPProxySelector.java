@@ -25,7 +25,6 @@ import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
-import java.util.StringTokenizer;
 
 /**
  * Proxy selector for HTTP clients
@@ -57,60 +56,41 @@ public class HTTPProxySelector extends ProxySelector {
 	}
 
 	/** List of proxies */
-	protected final List<Proxy> proxies = new LinkedList<Proxy>();
+	protected final List<Proxy> proxies;
 
-	protected String[] noProxyHosts;
+	/** Array of hosts to skip proxy */
+	protected final String[] no_proxy_hosts;
 
 	/** Create a new HTTP proxy selector */
 	public HTTPProxySelector(Properties props) {
-		Proxy proxy = createProxy(props);
-		if(proxy != null)
-			proxies.add(proxy);
-		setNoProxyHosts(props);
+		proxies = createProxyList(props);
+		no_proxy_hosts = createNoProxyHosts(props);
 	}
 
-	/** Create a Proxy from a set of properties */
-	protected Proxy createProxy(Properties props) {
+	/** Create a Proxy list from a set of properties */
+	protected List<Proxy> createProxyList(Properties props) {
+		LinkedList<Proxy> plist = new LinkedList<Proxy>();
 		String h = props.getProperty("proxy.host");
 		String p = props.getProperty("proxy.port");
 		if(h != null && p != null) {
 			SocketAddress sa = new InetSocketAddress(h,
 				Integer.valueOf(p));
-			return new Proxy(Proxy.Type.HTTP, sa);
-		} else
-			return null;
+			plist.add(new Proxy(Proxy.Type.HTTP, sa));
+		}
+		return plist;
 	}
 
-	private void setNoProxyHosts(Properties props) {
+	/** Create an array of hosts to skip proxy */
+	protected String[] createNoProxyHosts(Properties props) {
 		String hosts = props.getProperty("no.proxy.hosts");
-		if(hosts != null) {
-			StringTokenizer t =
-				new StringTokenizer(hosts, ",", false);
-			noProxyHosts = new String[t.countTokens()];
-			for(int i = 0; i < noProxyHosts.length; i++) {
-				String ip = t.nextToken();
-				noProxyHosts[i] = ip;
-			}
-		}
+		if(hosts != null)
+			return hosts.split(",");
+		else
+			return new String[0];
 	}
 
 	public void connectFailed(URI uri, SocketAddress sa, IOException ioe) {
 		// FIXME: implement this method
-	}
-
-	protected boolean isInside(URI uri) {
-		String host = uri.getHost();
-		try {
-			InetAddress addr = InetAddress.getByName(host);
-			String hostIp = addr.getHostAddress();
-			for(String h: noProxyHosts) {
-				if(hostIp.indexOf(h) > -1)
-					return true;
-			}
-		}
-		catch(UnknownHostException uhe) {
-		}
-		return false;
 	}
 
 	public List<Proxy> select(URI uri) {
@@ -123,5 +103,20 @@ public class HTTPProxySelector extends ProxySelector {
 		if(!isProxyPort(uri))
 			return DIRECT;
 		return proxies;
+	}
+
+	protected boolean isInside(URI uri) {
+		String host = uri.getHost();
+		try {
+			InetAddress addr = InetAddress.getByName(host);
+			String hostIp = addr.getHostAddress();
+			for(String h: no_proxy_hosts) {
+				if(hostIp.indexOf(h) > -1)
+					return true;
+			}
+		}
+		catch(UnknownHostException uhe) {
+		}
+		return false;
 	}
 }
