@@ -34,6 +34,20 @@ import java.util.Properties;
  */
 public class HTTPProxySelector extends ProxySelector {
 
+	/** Ports to be proxied */
+	static protected final int[] PROXY_PORTS = {80, 8080};
+
+	/** Check if the port of a URI should be proxied */
+	static protected boolean isProxyPort(int p) {
+		if(p == -1)
+			return true;
+		for(int i: PROXY_PORTS) {
+			if(p == i)
+				return true;
+		}
+		return false;
+	}
+
 	/** List of proxies */
 	protected final List<Proxy> proxies;
 
@@ -75,17 +89,13 @@ public class HTTPProxySelector extends ProxySelector {
 
 	/** Select available proxy servers based on a URI */
 	public List<Proxy> select(URI uri) {
-		LinkedList<Proxy> pl = new LinkedList<Proxy>();
-		if(uri != null && shouldUseProxy(uri)) {
-			int port = uri.getPort();
-			for(Proxy proxy: proxies) {
-				if(port < 0 || matchProxy(proxy, port))
-					pl.add(proxy);
-			}
-		}
-		if(pl.isEmpty())
+		if(uri != null && shouldUseProxy(uri))
+			return proxies;
+		else {
+			LinkedList<Proxy> pl = new LinkedList<Proxy>();
 			pl.add(Proxy.NO_PROXY);
-		return pl;
+			return pl;
+		}
 	}
 
 	/** Check if a proxy server should be used for a URI */
@@ -98,21 +108,11 @@ public class HTTPProxySelector extends ProxySelector {
 				if(hip.startsWith(h))
 					return false;
 			}
-			return true;
+			return isProxyPort(uri.getPort());
 		}
 		catch(UnknownHostException uhe) {
 			return true;
 		}
-	}
-
-	/** Check if a proxy server matches a port */
-	protected boolean matchProxy(Proxy proxy, int port) {
-		SocketAddress sa = proxy.address();
-		if(sa instanceof InetSocketAddress) {
-			InetSocketAddress isa = (InetSocketAddress)sa;
-			return isa.getPort() == port;
-		} else
-			return false;
 	}
 
 	/** Check if the selector has defined proxy servers */
