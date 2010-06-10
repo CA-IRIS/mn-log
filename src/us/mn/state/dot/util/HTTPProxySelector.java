@@ -34,27 +34,6 @@ import java.util.Properties;
  */
 public class HTTPProxySelector extends ProxySelector {
 
-	/** Ports to be proxied */
-	static protected final int[] PROXY_PORTS = {80, 8080};
-
-	/** Check if the port of a URI should be proxied */
-	static protected boolean isProxyPort(URI uri) {
-		int p = uri.getPort();
-		if(p == -1)
-			return true;
-		for(int i: PROXY_PORTS) {
-			if(p == i)
-				return true;
-		}
-		return false;
-	}
-
-	/** List of proxies for direct */
-	static protected final List<Proxy> DIRECT = new LinkedList<Proxy>();
-	static {
-		DIRECT.add(Proxy.NO_PROXY);
-	}
-
 	/** List of proxies */
 	protected final List<Proxy> proxies;
 
@@ -96,30 +75,39 @@ public class HTTPProxySelector extends ProxySelector {
 
 	/** Select available proxy servers based on a URI */
 	public List<Proxy> select(URI uri) {
-		if(uri == null)
-			return DIRECT;
-		if(!hasProxies())
-			return DIRECT;
-		if(isInside(uri))
-			return DIRECT;
-		if(!isProxyPort(uri))
-			return DIRECT;
-		return proxies;
+		LinkedList<Proxy> pl = new LinkedList<Proxy>();
+		if(uri != null && shouldUseProxy(uri)) {
+			int port = uri.getPort();
+			for(Proxy proxy: proxies) {
+				SocketAddress sa = proxy.address();
+				if(sa instanceof InetSocketAddress) {
+					InetSocketAddress isa =
+						(InetSocketAddress)sa;
+					if(isa.getPort() == port)
+						pl.add(proxy);
+				}
+			}
+		}
+		if(pl.isEmpty())
+			pl.add(Proxy.NO_PROXY);
+		return pl;
 	}
 
-	protected boolean isInside(URI uri) {
+	/** Check if a proxy server should be used for a URI */
+	protected boolean shouldUseProxy(URI uri) {
 		String host = uri.getHost();
 		try {
 			InetAddress addr = InetAddress.getByName(host);
-			String hostIp = addr.getHostAddress();
+			String hip = addr.getHostAddress();
 			for(String h: no_proxy_hosts) {
-				if(hostIp.indexOf(h) > -1)
-					return true;
+				if(hip.startsWith(h))
+					return false;
 			}
+			return true;
 		}
 		catch(UnknownHostException uhe) {
+			return true;
 		}
-		return false;
 	}
 
 	/** Check if the selector has defined proxy servers */
