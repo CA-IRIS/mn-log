@@ -89,14 +89,16 @@ public class HTTPProxySelector extends ProxySelector {
 			return new String[0];
 	}
 
+	/** Handle a failed connection to a proxy server */
 	public void connectFailed(URI uri, SocketAddress sa, IOException ioe) {
 		// FIXME: implement this method
 	}
 
+	/** Select available proxy servers based on a URI */
 	public List<Proxy> select(URI uri) {
 		if(uri == null)
 			return DIRECT;
-		if(proxies.size() == 0)
+		if(!hasProxies())
 			return DIRECT;
 		if(isInside(uri))
 			return DIRECT;
@@ -118,5 +120,10 @@ public class HTTPProxySelector extends ProxySelector {
 		catch(UnknownHostException uhe) {
 		}
 		return false;
+	}
+
+	/** Check if the selector has defined proxy servers */
+	public boolean hasProxies() {
+		return proxies.size() > 0;
 	}
 }
