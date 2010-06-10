@@ -35,14 +35,28 @@ import java.util.StringTokenizer;
  */
 public class HTTPProxySelector extends ProxySelector {
 
-	protected String[] noProxyHosts;
+	/** Ports to be proxied */
+	static protected final int[] PROXY_PORTS = {80, 8080};
 
-	protected final int[] proxyPorts = {80, 8080};
+	/** Check if the port of a URI should be proxied */
+	static protected boolean isProxyPort(URI uri) {
+		int p = uri.getPort();
+		if(p == -1)
+			return true;
+		for(int i: PROXY_PORTS) {
+			if(p == i)
+				return true;
+		}
+		return false;
+	}
+
+	protected String[] noProxyHosts;
 
 	protected final List<Proxy> DIRECT_LIST = new ArrayList<Proxy>();
 
 	protected final List<Proxy> PROXY_LIST = new ArrayList<Proxy>();
 
+	/** Create a new HTTP proxy selector */
 	public HTTPProxySelector(Properties props) {
 		DIRECT_LIST.add(Proxy.NO_PROXY);
 		setProxyList(props);
@@ -55,7 +69,7 @@ public class HTTPProxySelector extends ProxySelector {
 			StringTokenizer t =
 				new StringTokenizer(hosts, ",", false);
 			noProxyHosts = new String[t.countTokens()];
-			for(int i=0; i < noProxyHosts.length; i++) {
+			for(int i = 0; i < noProxyHosts.length; i++) {
 				String ip = t.nextToken();
 				noProxyHosts[i] = ip;
 			}
@@ -102,16 +116,5 @@ public class HTTPProxySelector extends ProxySelector {
 		if(!isProxyPort(uri))
 			return DIRECT_LIST;
 		return PROXY_LIST;
-	}
-
-	protected boolean isProxyPort(URI uri) {
-		int p = uri.getPort();
-		if(p == -1)
-			return true;
-		for(int i: proxyPorts) {
-			if(p == i)
-				return true;
-		}
-		return false;
 	}
 }
