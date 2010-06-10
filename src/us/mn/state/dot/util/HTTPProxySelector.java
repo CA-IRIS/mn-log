@@ -56,14 +56,29 @@ public class HTTPProxySelector extends ProxySelector {
 		DIRECT.add(Proxy.NO_PROXY);
 	}
 
-	protected String[] noProxyHosts;
-
+	/** List of proxies */
 	protected final List<Proxy> PROXY_LIST = new LinkedList<Proxy>();
+
+	protected String[] noProxyHosts;
 
 	/** Create a new HTTP proxy selector */
 	public HTTPProxySelector(Properties props) {
-		setProxyList(props);
+		Proxy proxy = createProxy(props);
+		if(proxy != null)
+			PROXY_LIST.add(proxy);
 		setNoProxyHosts(props);
+	}
+
+	/** Create a Proxy from a set of properties */
+	protected Proxy createProxy(Properties props) {
+		String h = props.getProperty("proxy.host");
+		String p = props.getProperty("proxy.port");
+		if(h != null && p != null) {
+			SocketAddress sa = new InetSocketAddress(h,
+				Integer.valueOf(p));
+			return new Proxy(Proxy.Type.HTTP, sa);
+		} else
+			return null;
 	}
 
 	private void setNoProxyHosts(Properties props) {
@@ -77,17 +92,6 @@ public class HTTPProxySelector extends ProxySelector {
 				noProxyHosts[i] = ip;
 			}
 		}
-	}
-
-	private void setProxyList(Properties props) {
-		String p = props.getProperty("proxy.port");
-		String h = props.getProperty("proxy.host");
-		if(h != null && p != null) {
-			SocketAddress sa = new InetSocketAddress(h,
-				Integer.valueOf(p));
-			PROXY_LIST.add(new Proxy(Proxy.Type.HTTP, sa));
-		}
-
 	}
 
 	public void connectFailed(URI uri, SocketAddress sa, IOException ioe) {
