@@ -57,7 +57,7 @@ public class HTTPProxySelector extends ProxySelector {
 	}
 
 	/** List of proxies */
-	protected final List<Proxy> PROXY_LIST = new LinkedList<Proxy>();
+	protected final List<Proxy> proxies = new LinkedList<Proxy>();
 
 	protected String[] noProxyHosts;
 
@@ -65,7 +65,7 @@ public class HTTPProxySelector extends ProxySelector {
 	public HTTPProxySelector(Properties props) {
 		Proxy proxy = createProxy(props);
 		if(proxy != null)
-			PROXY_LIST.add(proxy);
+			proxies.add(proxy);
 		setNoProxyHosts(props);
 	}
 
@@ -116,12 +116,12 @@ public class HTTPProxySelector extends ProxySelector {
 	public List<Proxy> select(URI uri) {
 		if(uri == null)
 			return DIRECT;
-		if(PROXY_LIST.size() == 0)
+		if(proxies.size() == 0)
 			return DIRECT;
 		if(isInside(uri))
 			return DIRECT;
 		if(!isProxyPort(uri))
 			return DIRECT;
-		return PROXY_LIST;
+		return proxies;
 	}
 }
