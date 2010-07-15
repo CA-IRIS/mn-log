@@ -1,6 +1,6 @@
 /*
  * IRIS -- Intelligent Roadway Information System
- * Copyright (C) 2007  Minnesota Department of Transportation
+ * Copyright (C) 2007,2010  Minnesota Department of Transportation
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,89 +22,101 @@ import java.net.ProxySelector;
 import java.net.SocketAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
-import java.util.StringTokenizer;
 
 /**
  * Proxy selector for HTTP clients
  *
  * @author Tim Johnson
+ * @author Douglas Lau
  */
 public class HTTPProxySelector extends ProxySelector {
 
-	protected String[] noProxyHosts;
+	/** Ports to be proxied */
+	static protected final int[] PROXY_PORTS = {80, 8080};
 
-	protected final int[] proxyPorts = {80, 8080};
-	
-	protected final List<Proxy> DIRECT_LIST = new ArrayList<Proxy>();
-
-	protected final List<Proxy> PROXY_LIST = new ArrayList<Proxy>();
-	
-	public HTTPProxySelector(Properties props){
-		DIRECT_LIST.add(Proxy.NO_PROXY);
-		setProxyList(props);
-		setNoProxyHosts(props);
-	}
-	
-	private void setNoProxyHosts(Properties props){
-		String hosts = props.getProperty("no.proxy.hosts");
-		if(hosts != null) {
-			StringTokenizer t =
-				new StringTokenizer(hosts, ",", false);
-			noProxyHosts = new String[t.countTokens()];
-			for(int i=0; i < noProxyHosts.length; i++) {
-				String ip = t.nextToken();
-				noProxyHosts[i] = ip;
-			}
+	/** Check if the port of a URI should be proxied */
+	static protected boolean isProxyPort(int p) {
+		if(p == -1)
+			return true;
+		for(int i: PROXY_PORTS) {
+			if(p == i)
+				return true;
 		}
+		return false;
 	}
 
-	private void setProxyList(Properties props) {
-		String p = props.getProperty("proxy.port");
+	/** List of proxies */
+	protected final List<Proxy> proxies;
+
+	/** Array of hosts to skip proxy */
+	protected final String[] no_proxy_hosts;
+
+	/** Create a new HTTP proxy selector */
+	public HTTPProxySelector(Properties props) {
+		proxies = createProxyList(props);
+		no_proxy_hosts = createNoProxyHosts(props);
+	}
+
+	/** Create a Proxy list from a set of properties */
+	protected List<Proxy> createProxyList(Properties props) {
+		LinkedList<Proxy> plist = new LinkedList<Proxy>();
 		String h = props.getProperty("proxy.host");
+		String p = props.getProperty("proxy.port");
 		if(h != null && p != null) {
 			SocketAddress sa = new InetSocketAddress(h,
 				Integer.valueOf(p));
-			PROXY_LIST.add(new Proxy(Proxy.Type.HTTP, sa));
+			plist.add(new Proxy(Proxy.Type.HTTP, sa));
 		}
-
+		return plist;
 	}
 
+	/** Create an array of hosts to skip proxy */
+	protected String[] createNoProxyHosts(Properties props) {
+		String hosts = props.getProperty("no.proxy.hosts");
+		if(hosts != null)
+			return hosts.split(",");
+		else
+			return new String[0];
+	}
+
+	/** Handle a failed connection to a proxy server */
 	public void connectFailed(URI uri, SocketAddress sa, IOException ioe) {
-		//FIXME: implement this method
+		// FIXME: implement this method
 	}
-	
-	protected boolean isInside(URI uri){
+
+	/** Select available proxy servers based on a URI */
+	public List<Proxy> select(URI uri) {
+		if(uri != null && shouldUseProxy(uri))
+			return proxies;
+		else {
+			LinkedList<Proxy> pl = new LinkedList<Proxy>();
+			pl.add(Proxy.NO_PROXY);
+			return pl;
+		}
+	}
+
+	/** Check if a proxy server should be used for a URI */
+	protected boolean shouldUseProxy(URI uri) {
 		String host = uri.getHost();
 		try {
 			InetAddress addr = InetAddress.getByName(host);
-			String hostIp = addr.getHostAddress();
-			for(String h: noProxyHosts) {
-				if(hostIp.indexOf(h) > -1){
-					return true;
-				}
+			String hip = addr.getHostAddress();
+			for(String h: no_proxy_hosts) {
+				if(hip.startsWith(h))
+					return false;
 			}
-		} catch(UnknownHostException uhe) {
+			return isProxyPort(uri.getPort());
 		}
-		return false;
-	}
-	
-	public List<Proxy> select(URI uri) {
-		if(uri == null) return DIRECT_LIST;
-		if(PROXY_LIST.size() == 0) return DIRECT_LIST;
-		if(isInside(uri)) return DIRECT_LIST;
-		if(!isProxyPort(uri)) return DIRECT_LIST;
-		return PROXY_LIST;
+		catch(UnknownHostException uhe) {
+			return true;
+		}
 	}
 
-	protected boolean isProxyPort(URI uri){
-		int p = uri.getPort();
-		if(p==-1) return true;
-		for(int i : proxyPorts){
-			if(p==i) return true;
-		}
-		return false;
+	/** Check if the selector has defined proxy servers */
+	public boolean hasProxies() {
+		return proxies.size() > 0;
 	}
 }
