@@ -51,8 +51,8 @@ public class TmsConnection extends DatabaseConnection {
 	protected static final String F_CROSS_STREET = "cross_street";
 	protected static final String F_CROSS_DIR = "cross_dir";
 	protected static final String F_CROSS_MOD = "cross_mod";
-	protected static final String F_FREEWAY = "freeway";
-	protected static final String F_FREEWAY_DIR = "free_dir";
+	protected static final String F_ROADWAY = "roadway";
+	protected static final String F_ROADWAY_DIR = "road_dir";
 
 	protected static final String F_DMS_ID = "name";
 	protected static final String F_CAMERA_ID = "name";
@@ -186,15 +186,15 @@ public class TmsConnection extends DatabaseConnection {
 				break;
 		}
 		if(table == null || idField == null) return "";
-		String q = "select " + F_FREEWAY + ", " + F_FREEWAY_DIR + ", " +
+		String q = "select " + F_ROADWAY + ", " + F_ROADWAY_DIR + ", " +
 			F_CROSS_STREET + ", " + F_CROSS_DIR + ", " + F_CROSS_MOD +
 			" from " + table + " where " + idField + " = '" + deviceName + "'";
 		String loc = "";
 		try{
 			ResultSet rs = query(q);
 			if(rs.next()){
-				loc = loc.concat(rs.getString(F_FREEWAY));
-				loc = loc.concat(" " + rs.getString(F_FREEWAY_DIR));
+				loc = loc.concat(rs.getString(F_ROADWAY));
+				loc = loc.concat(" " + rs.getString(F_ROADWAY_DIR));
 				loc = loc.concat(" " + rs.getString(F_CROSS_MOD));
 				loc = loc.concat(" " + rs.getString(F_CROSS_STREET));
 				loc = loc.concat(" " + rs.getString(F_CROSS_DIR));
